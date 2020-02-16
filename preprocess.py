@@ -23,15 +23,6 @@ def splitSample(X, y, window = 0.1, overlap = 0.5):
         temp_y.append(y)
 
     return np.array(temp_X), np.array(temp_y)
-	
-	
-def to_melspectrogram(samples, n_fft = 1024, hop_length = 512):
-    # Transformation function
-	melspec = lambda x: librosa.feature.melspectrogram(x, n_fft = n_fft, hop_length = hop_length)[:,:,np.newaxis]
-	# map transformation of input speech to melspectrogram using log-scale
-	tsample = map(melspec, samples)
-	print(tsample)
-	return np.array(list(tsample))
 
 def getMFCC(samples, sr, hop_length=512):
 	# Compute MFCC features from the raw signal
