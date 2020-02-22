@@ -28,6 +28,14 @@ def getMFCC(samples, sr, hop_length=512):
 	# Compute MFCC features from the raw signal
 	mfcc = librosa.feature.mfcc(y=samples, sr=sr, hop_length=hop_length, n_mfcc=13)
 	return mfcc
+	
+def getPitch(samples, sr, hop_length=512):
+	# Compute MFCC features from the raw signal
+	pitches, magnitudes = librosa.core.piptrack(y=samples, sr=sr, fmin=75, fmax=1600)
+	
+	np.set_printoptions(threshold=np.nan)
+	#print(pitches[np.nonzero(pitches)])
+	return pitches
 
 	
 def plotFreq(list):
@@ -43,6 +51,7 @@ def readData(emotions, num_samples, dir, n_fft = 1024, hop_length = 512):
 	#print(os.listdir(dir)) # check what files are available
 	emotionlst = []
 	mfcclst = []
+	pitchlst = []
 	
 	num_actors = 2 #total number in RAVDESS is 24
 	
@@ -85,16 +94,18 @@ def readData(emotions, num_samples, dir, n_fft = 1024, hop_length = 512):
 					# Get MFCC of signal sample
 					mfcc = getMFCC(s, sr)
 					mfcclst.append(mfcc)
-				
+					pitch = getPitch(s, sr)
+					pitchlst.append(pitch)
 				# Convert to "spec" representation
 				#specs = to_melspectrogram(signals, n_fft, hop_length)
 		
 		#print(mfcc)
 		print(emotionlst.shape)
 		print(len(mfcclst))  #may need to play around with how this is being stored
+		print(len(pitchlst))
 	#plotFreq(emotionlst)
 	
-	return(mfcclst, emotionlst)
+	return(mfcclst, pitchlst, emotionlst)
 	
 	
 if __name__ == '__main__':
@@ -102,6 +113,10 @@ if __name__ == '__main__':
 	dir_path = 'data'
 	emotions = {'01':'neutral', '02': 'calm', '03': 'happy', '04': 'sad', '05': 'angry', '06': 'fearful', '07': 'disgust', '08': 'surprised'}
 	
-	features, labels = readData(emotions, num_samples, dir_path)
+	features, pitch_list, labels = readData(emotions, num_samples, dir_path)
 	
-	plotFreq(emotionlst)
+	plotFreq(labels)
+	
+	
+	# to do:
+	# other features - energy, pitch (frequency), LPCC
