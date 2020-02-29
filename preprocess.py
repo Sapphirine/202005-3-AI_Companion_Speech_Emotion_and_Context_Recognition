@@ -8,6 +8,7 @@ from scipy.fftpack import dct
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+import sounddevice as sd
 
 
 def splitSample(X, y, window = 0.1, overlap = 0.5):
@@ -27,14 +28,33 @@ def splitSample(X, y, window = 0.1, overlap = 0.5):
         temp_y.append(y)
 
     return np.array(temp_X), np.array(temp_y)
+
+def getSignal(file_name):
+	X, sample_rate = librosa.load(file_name)	
+	return X, sample_rate
 	
-def getFeatures(file_name, mfcc, chroma, mel):
+def addNoise(data):
+	"""
+	Add White noise to the signal
+	"""
+	noise_amp = 0.005*np.random.uniform()*np.amax(data)
+	data = data.astype('float64') + noise_amp*np.random.normal(size=data.shape[0])
+	return data
+
+def shift(data):
+	"""
+	Adding random shift to data
+	"""
+	s_range = int(np.random.uniform(low=-5, high=5)*500)
+	return np.roll(data,s_range)
+	
+def getFeatures(X, sample_rate, mfcc, chroma, mel):
 	# Compute features from sound file
 	# mfcc = Mel Frequency Cepstral Coefficeints (short-term power spectrum of a sound)
 	# chroma = 12 different pitch classes
 	# mel = Mel Spectrogram Frequency
 
-	X, sample_rate = librosa.load(file_name)
+	
 	result=np.array([])
 	
 	if mfcc:
@@ -56,7 +76,12 @@ def plotFreq(list):
 	df.groupby('freq', as_index=False).size().plot(kind='bar')
 	plt.show()
 	
-
+def playAudio(data, sample_rate):
+	sd.play(data, sample_rate)
+	
+def saveAudio(filepath, data, sample_rate):
+	scipy.io.wavfile.write(filepath, sample_rate, data)
+	
 #def readData(emotions, num_samples, dir, n_fft = 1024, hop_length = 512):
 
 def readData(emotions, dir, test_size=0.2):
@@ -95,42 +120,37 @@ def readData(emotions, dir, test_size=0.2):
 				
 				# get info on file
 				emotion = file[6:8]
-				#emotionlst.append(emotions[emotion])
 				
-				#print(file_name)
-
-				#signal, sr = librosa.load(file_name) # signal is 1-dimensional array, sr is sampling rate
-				#signal = signal[:num_samples]
+				X, sample_rate = getSignal(file_name)
 				
-				# Convert to dataset of spectograms/melspectograms
-				#signals, y = splitSample(signal, emotion)
-				
-				#for emote in y:
-					#emotionlst = np.append(emotionlst, emotions[emotion])
-				
-				feature=getFeatures(file_name, mfcc=True, chroma=True, mel=True)
+				feature=getFeatures(X, sample_rate, mfcc=True, chroma=True, mel=True)
 				
 				x.append(feature)
 				y.append(emotion)
 				
-				'''
-				for s in signals:
-					# Get MFCC of signal sample
-					mfcc = getMFCC(s, sr)
-					mfcclst.append(mfcc)
-					pitch = getPitch(s, sr)
-					pitchlst.append(pitch)
-				'''
-				# Convert to "spec" representation
-				#specs = to_melspectrogram(signals, n_fft, hop_length)
-		
-		#print(mfcc)
-		#print(emotionlst.shape)
-		#print(len(mfcclst))  #may need to play around with how this is being stored
-		#print(len(pitchlst))
-	#plotFreq(emotionlst)
-	
-	#return(mfcclst, pitchlst, emotionlst)
+				# data augmentation
+				X_noise = addNoise(X) # add white noise
+				#playAudio(X_noise, sample_rate)
+				
+				X_shift = shift(X) # add random shift
+				
+				X_NandS = shift(X_noise) # noise and shift
+				
+				feature1=getFeatures(X_noise, sample_rate, mfcc=True, chroma=True, mel=True)
+				
+				feature2=getFeatures(X_shift, sample_rate, mfcc=True, chroma=True, mel=True)
+				
+				feature3=getFeatures(X_NandS, sample_rate, mfcc=True, chroma=True, mel=True)
+				
+				x.append(feature1)
+				y.append(emotion)
+				
+				x.append(feature2)
+				y.append(emotion)
+				
+				x.append(feature3)
+				y.append(emotion)
+
 	return train_test_split(np.array(x), y, test_size=test_size, random_state=9)
 	
 	
@@ -147,7 +167,3 @@ if __name__ == '__main__':
 	print('Features extracted: ', x_train.shape[1])
 	
 	#plotFreq(labels)
-	
-	
-	# to do:
-	# other features - energy, pitch (frequency), LPCC
