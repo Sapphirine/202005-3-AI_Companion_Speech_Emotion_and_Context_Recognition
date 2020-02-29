@@ -3,10 +3,25 @@
 import preprocess
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import confusion_matrix
 
-print("done")
+#print("done")
 
-
+def confusionMatrix(y_test, y_pred):
+	labels = ['neutral', 'calm', 'happy', 'sad', 'angry', 'fearful', 'disgust', 'surprised']
+	cm = confusion_matrix(y_test, y_pred, labels)
+	print(cm)
+	fig = plt.figure()
+	ax = fig.add_subplot(111)
+	cax = ax.matshow(cm)
+	plt.title('Confusion matrix of the classifier')
+	fig.colorbar(cax)
+	ax.set_xticklabels([''] + labels)
+	ax.set_yticklabels([''] + labels)
+	plt.xlabel('Predicted')
+	plt.ylabel('True')
+	plt.show()
+	
 if __name__ == '__main__':
 	dir_path = 'data_orig'
 	emotions = {'01':'neutral', '02': 'calm', '03': 'happy', '04': 'sad', '05': 'angry', '06': 'fearful', '07': 'disgust', '08': 'surprised'}
@@ -30,3 +45,5 @@ if __name__ == '__main__':
 	accuracy=accuracy_score(y_true=y_test, y_pred=y_pred)
 	
 	print("Accuracy: {:.2f}%".format(accuracy*100))
+	
+	confusionMatrix(y_test, y_pred)
