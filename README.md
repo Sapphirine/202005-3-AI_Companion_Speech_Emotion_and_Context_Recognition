@@ -5,11 +5,15 @@ Advanced Big Data project - speech and emotion recognition with context dialogue
 Make sure the following packages are installed
 - Tensorflow environment
 - Keras
-= openCV
+- openCV
 - dlib
 - librosa
 - speechrecognition
 - gTTS
+- pydub
+- wave 
+- pyAudio
+- VGGFace
 
 ### Executing program
 Make sure you are in a Tensorflow environment. Execute the live_chatbotaudvid1.py file.
